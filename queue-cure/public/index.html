@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clinic Queue — City Care Clinic</title>
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[var(--bg)] min-h-screen flex flex-col justify-between">
+  
+  <!-- Global Navigation Header -->
+  <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-[var(--primary)] rounded-lg flex items-center justify-center text-white font-mono font-bold text-xl shadow-sm">
+        C
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-slate-800 leading-none">City Care Clinic</h1>
+        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">REAL-TIME CLINIC QUEUE SYSTEM</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Hero Landing Stage -->
+  <main class="flex-grow flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-6 py-12">
+    
+    <!-- Title Section -->
+    <div class="text-center mb-12">
+      <span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full mb-4 border border-slate-200 uppercase tracking-wider">
+        Standard Patient Queue Portal
+      </span>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
+        Clinic Queue Dashboard
+      </h1>
+      <p class="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+        Real-time clinic waiting room boards. Modernize your medical registration desk, coordinate consultations, and update patients instantly.
+      </p>
+    </div>
+
+    <!-- Entrance Choices (2 Large Cards side-by-side, stacks on mobile) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
+      
+      <!-- Option A: Receptionist -->
+      <button 
+        id="btn-receptionist-gate" 
+        class="bg-white border border-slate-200 hover:border-[var(--primary)] rounded-2xl p-8 shadow-sm hover:shadow-lg text-left group flex flex-col justify-between h-64 focus:outline-none transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+      >
+        <div>
+          <div class="w-12 h-12 bg-slate-100 text-[var(--primary)] rounded-xl flex items-center justify-center text-xl font-bold mb-6 border border-slate-250">
+            STAFF
+          </div>
+          <h2 class="text-lg font-bold text-slate-800 mb-2 group-hover:text-[var(--primary)] transition-colors duration-300">
+            Receptionist Dashboard
+          </h2>
+          <p class="text-slate-500 text-xs leading-relaxed">
+            Register new patients, call next token turns, toggle break/pause states, and manage clinical billing workflows.
+          </p>
+        </div>
+        <div class="flex items-center text-[var(--primary)] font-bold text-xs gap-1 self-end group-hover:translate-x-1 transition-transform duration-300">
+          Staff Login &rarr;
+        </div>
+      </button>
+
+      <!-- Option B: Patient -->
+      <a 
+        href="/waiting-room" 
+        id="btn-patient-gate" 
+        class="bg-white border border-slate-200 hover:border-[var(--primary)] rounded-2xl p-8 shadow-sm hover:shadow-lg text-left group flex flex-col justify-between h-64 focus:outline-none transition-all duration-300 transform hover:-translate-y-1"
+      >
+        <div>
+          <div class="w-12 h-12 bg-slate-100 text-[var(--primary)] rounded-xl flex items-center justify-center text-xl font-bold mb-6 border border-slate-250">
+            BOARD
+          </div>
+          <h2 class="text-lg font-bold text-slate-800 mb-2 group-hover:text-[var(--primary)] transition-colors duration-300">
+            Patient Waiting Room
+          </h2>
+          <p class="text-slate-500 text-xs leading-relaxed">
+            Track active waiting list, view live tickers, monitor call-out announcements, and estimate your consultation time.
+          </p>
+        </div>
+        <div class="flex items-center text-[var(--primary)] font-bold text-xs gap-1 self-end group-hover:translate-x-1 transition-transform duration-300">
+          Lobby Display &rarr;
+        </div>
+      </a>
+
+    </div>
+
+  </main>
+
+  <!-- Pin Access Protection Overlay Modal -->
+  <div id="pin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-sm rounded-xl p-8 shadow-2xl border border-slate-100 relative mx-4 transform scale-95 transition-transform duration-300" id="pin-modal-content">
+      
+      <!-- Close Button -->
+      <button id="close-pin-modal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold p-1 hover:bg-slate-100 rounded-lg w-8 h-8 flex items-center justify-center">
+        &times;
+      </button>
+
+      <!-- Modal Body -->
+      <div class="text-center mb-6">
+        <h3 class="text-lg font-bold text-slate-900">Receptionist Security Access</h3>
+        <p class="text-slate-450 text-xs mt-1">Please enter your clinic registration desk code to log in</p>
+        <div class="mt-3 text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-600 inline-flex items-center gap-1.5 font-mono font-medium shadow-sm">
+          <span>Desk Code / Password:</span>
+          <span class="font-extrabold text-[var(--primary)]">2626</span>
+        </div>
+      </div>
+
+      <form id="pin-form" onsubmit="handlePinSubmit(event)">
+        <div class="mb-4">
+          <label for="pin-input" class="block text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Access Key Code</label>
+          <input 
+            type="password" 
+            id="pin-input" 
+            placeholder="••••"
+            class="w-full px-4 py-3 border border-slate-200 rounded-lg text-center text-2xl tracking-widest font-mono font-bold focus:outline-none focus:border-[var(--primary)] bg-slate-50"
+            maxlength="8"
+            required
+            autocomplete="off"
+          >
+          <p id="pin-error-msg" class="text-red-500 text-xs font-medium mt-2 text-center hidden"></p>
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full py-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-lg shadow-sm transition-colors cursor-pointer text-sm"
+        >
+          Verify Credentials
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Footer Info Line -->
+  <footer class="w-full py-6 text-center text-slate-400 text-[10px] font-mono border-t border-slate-100 bg-white">
+    City Care Clinic &copy; 2026. All rights reserved.
+  </footer>
+
+  <!-- PIN Script handler -->
+  <script>
+    const rcpButton = document.getElementById('btn-receptionist-gate');
+    const pinModal = document.getElementById('pin-modal');
+    const pinModalContent = document.getElementById('pin-modal-content');
+    const closePinModal = document.getElementById('close-pin-modal');
+    const pinInput = document.getElementById('pin-input');
+    const pinErrorMsg = document.getElementById('pin-error-msg');
+    const pinForm = document.getElementById('pin-form');
+
+    // Open Modal
+    rcpButton.addEventListener('click', () => {
+      pinModal.classList.remove('hidden');
+      setTimeout(() => {
+        pinModal.classList.remove('opacity-0');
+        pinModalContent.classList.remove('scale-95');
+      }, 50);
+      pinInput.value = '';
+      pinErrorMsg.classList.add('hidden');
+      pinInput.focus();
+    });
+
+    // Close Modal Function
+    function hideModal() {
+      pinModal.classList.add('opacity-0');
+      pinModalContent.classList.add('scale-95');
+      setTimeout(() => {
+        pinModal.classList.add('hidden');
+      }, 300);
+    }
+
+    closePinModal.addEventListener('click', hideModal);
+
+    // Dismiss by clicking background
+    pinModal.addEventListener('click', (e) => {
+      if (e.target === pinModal) {
+        hideModal();
+      }
+    });
+
+    // PIN Submission Handle
+    function handlePinSubmit(e) {
+      e.preventDefault();
+      const enteredPIN = pinInput.value.trim();
+      const correctPIN = "2626";
+
+      // Reset style classes
+      pinInput.classList.remove('shake-input');
+      pinErrorMsg.classList.add('hidden');
+
+      if (enteredPIN === correctPIN) {
+        sessionStorage.setItem("receptionistAuth", "true");
+        window.location.href = "/receptionist";
+      } else {
+        // Shaker animation for wrong PIN
+        pinInput.classList.add('shake-input');
+        pinErrorMsg.textContent = "Incorrect PIN. Try again.";
+        pinErrorMsg.classList.remove('hidden');
+        pinInput.value = '';
+        pinInput.focus();
+        
+        // Remove shake class after animation finishes
+        setTimeout(() => {
+          pinInput.classList.remove('shake-input');
+        }, 500);
+      }
+    }
+  </script>
+</body>
+</html>

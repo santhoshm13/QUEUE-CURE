@@ -1,0 +1,6 @@
+{
+  "name": "City Care Clinic Queue Board",
+  "description": "Real-time clinic queue management is a complete, production-ready full-stack clinic queue management web application.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

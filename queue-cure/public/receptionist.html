@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clinic Dashboard — City Care Clinic</title>
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <!-- Authorization Guard: Immediate Blocking check -->
+  <script>
+    if (sessionStorage.getItem("receptionistAuth") !== "true") {
+      window.location.href = "/";
+    }
+  </script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[var(--bg)] font-sans min-h-screen flex flex-col">
+  
+  <!-- Global Navigation Header -->
+  <header class="bg-white border-b border-slate-200 px-8 py-4 flex flex-col sm:flex-row items-center justify-between shadow-sm gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-[var(--primary)] rounded-lg flex items-center justify-center text-white font-mono font-bold text-xl shadow-sm">
+        C
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-slate-800 leading-none">City Care Clinic</h1>
+        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">RECEPTIONIST PANEL</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-6">
+      <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600 shadow-sm">
+        <span>Desk Access Code / Password:</span>
+        <span class="font-bold text-[var(--primary)]">2626</span>
+      </div>
+      <div class="text-right font-mono">
+        <p class="text-xs font-bold text-slate-700" id="cln-current-time">00:00:00 AM</p>
+        <p class="text-[9px] text-slate-400 font-semibold uppercase">TODAY'S DATE</p>
+      </div>
+      <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+      <button 
+        id="btn-logout" 
+        class="px-4 py-2 bg-slate-50 text-slate-600 rounded-md text-xs font-bold border border-slate-200 hover:bg-slate-100 transition-colors shadow-sm"
+      >
+        Sign Out / Exit Panel
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid Dashboard Stages -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Controls & Stats -->
+    <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+      
+      <!-- Add Patient Card -->
+      <section class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+        <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 bg-[var(--primary)] rounded-full"></span> Add Today's Patient
+        </h2>
+        
+        <form id="add-patient-form" onsubmit="handleAddPatient(event)" class="space-y-4">
+          <div>
+            <label for="patient-name-input" class="block text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">
+              Patient Full Name
+            </label>
+            <input 
+              type="text" 
+              id="patient-name-input" 
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:bg-white focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/10 font-medium placeholder-slate-400"
+              placeholder="Enter patient's name (e.g. John Doe)"
+              maxlength="50"
+              required
+              autocomplete="off"
+            >
+            <p id="add-patient-error" class="text-emerald-700 text-xs font-semibold mt-2 hidden"></p>
+            <p id="add-val-error" class="text-red-600 text-xs font-semibold mt-2 hidden">⚠ Please enter a valid name.</p>
+          </div>
+
+          <div>
+            <label for="patient-problem-input" class="block text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">
+              Reason for Visit / Problem
+            </label>
+            <input 
+              type="text" 
+              id="patient-problem-input" 
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:bg-white focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/10 font-medium placeholder-slate-400"
+              placeholder="e.g. Fever, Dental checkup, Body pain"
+              maxlength="100"
+              required
+              autocomplete="off"
+            >
+          </div>
+
+          <button 
+            type="submit" 
+            class="w-full py-3 bg-[var(--primary)] text-white font-bold rounded-lg shadow-sm hover:bg-[var(--primary-dark)] flex items-center justify-center gap-2 text-sm transition-all cursor-pointer"
+          >
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/></svg>
+            Register Patient
+          </button>
+        </form>
+      </section>
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-2 gap-3 font-mono">
+        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Today</p>
+          <p class="text-2xl font-bold text-slate-800 mt-1" id="metric-total">0</p>
+        </div>
+        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Waiting</p>
+          <p class="text-2xl font-bold text-amber-700 mt-1" id="metric-waiting">0</p>
+        </div>
+        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Completed</p>
+          <p class="text-2xl font-bold text-[var(--primary)] mt-1" id="metric-done">0</p>
+        </div>
+        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">No-Shows</p>
+          <p class="text-2xl font-bold text-red-700 mt-1" id="metric-noshow">0</p>
+        </div>
+      </div>
+
+      <!-- Config Settings panel -->
+      <section class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+        <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 bg-slate-300 rounded-full"></span> Panel Configuration
+        </h2>
+        <div class="space-y-4">
+          
+          <!-- Audio Switch toggle wrapper -->
+          <div class="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <div>
+              <span class="text-xs font-bold text-slate-700 block">Voice Synthesizer</span>
+              <span id="sound-toggle-text" class="text-[9px] font-mono text-slate-400 uppercase">Audio: ON</span>
+            </div>
+            <label class="switch-container">
+              <input type="checkbox" id="sound-toggle-element" class="switch-input" checked>
+              <div class="switch-rail">
+                <div class="switch-knob"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Avg consultation duration settings -->
+          <div class="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100 gap-2">
+            <div>
+              <span class="text-xs font-bold text-slate-700 block">Avg. Consult Rate</span>
+              <span class="text-[9px] text-slate-400">Minutes per turn</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <input 
+                type="number" 
+                id="consult-time-input" 
+                min="1" 
+                value="5" 
+                class="w-12 bg-white border border-slate-200 rounded px-2 py-1.5 text-center text-sm text-slate-800 font-bold outline-none focus:ring-1 focus:ring-[var(--primary)]"
+              >
+              <button 
+                id="btn-update-consult" 
+                class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-bold px-2.5 py-1.5 rounded transition-colors cursor-pointer shrink-0"
+              >
+                Set
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Right Column: Queue Management -->
+    <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+      
+      <!-- Active Call Banner -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between relative overflow-hidden gap-6">
+        <div class="absolute top-0 left-0 h-full w-1.5 bg-[var(--primary)]"></div>
+        <div class="flex-1">
+          <p class="text-xs font-bold text-[var(--primary)] uppercase tracking-wider mb-1">Currently Serving</p>
+          <div class="flex items-baseline gap-4 flex-wrap">
+            <h3 class="text-5xl font-bold text-slate-900 tracking-tighter font-mono" id="txt-now-serving-token">T---</h3>
+            <span class="text-2xl font-medium text-slate-500" id="txt-now-serving-name">Ready to Call Next</span>
+          </div>
+          <span class="hidden" id="txt-now-serving">Offline</span>
+          
+          <!-- Backwards-compatible break banner overlay inside Active Call Banner -->
+          <div 
+            id="break-banner" 
+            class="paused-banner mt-3 bg-amber-50 border-amber-200 text-amber-800 text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 hidden"
+          >
+            <span>ℹ</span> <strong>Paused state active</strong> — Staff is on a brief pause state. Patients can check in, but calling is temporarily suspended.
+          </div>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+          <button 
+            id="btn-pause-queue" 
+            class="px-5 py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 cursor-pointer flex items-center justify-center gap-2 text-xs transition-all"
+          >
+            <span id="btn-pause-icon">⏸</span> <span id="btn-pause-text">Pause Appointments</span>
+          </button>
+          <button 
+            id="btn-shoutout" 
+            class="px-5 py-3 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl font-bold hover:bg-indigo-100 cursor-pointer flex items-center justify-center gap-2 text-xs transition-all"
+            title="Politely announce and recall the active patient"
+          >
+            🎙️ Kindly Recall Patient
+          </button>
+          <button 
+            id="btn-call-next" 
+            class="px-7 py-3 bg-[var(--primary)] text-white rounded-xl font-bold shadow-sm hover:bg-[var(--primary-dark)] cursor-pointer flex items-center justify-center gap-2 text-xs transition-all"
+          >
+            Call Next Patient
+          </button>
+        </div>
+      </div>
+
+      <!-- Walk-In Live Queue Table Container -->
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden min-h-[300px]">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-505 bg-blue-500 rounded-full animate-pulse"></span>
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">🚶 Walk-In Patient Queue</h3>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono uppercase tracking-wider" id="txt-uptime-sync">Status: Online</span>
+        </div>
+        
+        <div class="overflow-x-auto flex-1 scroll-container">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100">
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Token</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Joined</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="walkin-table-body" class="divide-y divide-slate-100 font-sans text-sm text-slate-700">
+              <tr>
+                <td colspan="5" class="py-12 text-center text-slate-400">
+                  <span>No walk-in patients in the queue registry yet.</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Online Booked Patients Table Container -->
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden min-h-[250px] mt-4">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">💻 Live Online Ticket Bookings</h3>
+          </div>
+          <span class="text-[10px] text-emerald-600 font-mono font-bold uppercase tracking-wider" id="online-counter-badge">0 Active</span>
+        </div>
+        
+        <div class="overflow-x-auto flex-1 scroll-container">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100">
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Token</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Booked At</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="online-table-body" class="divide-y divide-slate-100 font-sans text-sm text-slate-700">
+              <tr>
+                <td colspan="5" class="py-12 text-center text-slate-400">
+                  <span>No active online tickets booked yet.</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Patient History & Billing Archives -->
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden min-h-[250px] mt-4">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-slate-400 rounded-full"></span>
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Patient History &amp; Closed Accounts</h3>
+          </div>
+          <div class="flex items-center gap-3">
+            <button 
+              id="btn-download-dataset" 
+              class="px-2.5 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all cursor-pointer flex items-center gap-1 shrink-0" 
+              title="Download Patient Dataset as excel friendly CSV file"
+            >
+              📥 Download Dataset
+            </button>
+            <button 
+              id="btn-clear-history" 
+              class="px-2.5 py-1 text-[10px] font-bold text-red-705 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-all cursor-pointer flex items-center gap-1 shrink-0" 
+              title="Delete completed and no-show history only"
+            >
+              🗑️ Clear History
+            </button>
+            <button 
+              id="btn-reset-queue" 
+              class="px-2.5 py-1 text-[10px] font-bold text-slate-705 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-all cursor-pointer flex items-center gap-1 shrink-0" 
+              title="Reset everything (queue and token counter)"
+            >
+              🔄 Reset Entire Queue
+            </button>
+            <span class="text-[10px] text-slate-500 font-mono font-semibold uppercase tracking-wider" id="txt-history-count">0 Closed Sessions</span>
+          </div>
+        </div>
+        
+        <div class="overflow-x-auto flex-grow scroll-container">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100">
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Token</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultation Time</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Invoice Details</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-100 font-sans text-sm text-slate-700">
+              <tr>
+                <td colspan="5" class="py-8 text-center text-slate-400">
+                  <span>No completed or paid records recorded in history yet.</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+  
+  <!-- Live Toast Container (Styled dynamically via style.css) -->
+  <div id="toast-container"></div>
+
+  <!-- ==================== MEDICAL BILLING MODAL ==================== -->
+  <div id="billing-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl border border-slate-200 relative mx-4 overflow-hidden transform scale-95 transition-transform duration-300 ticket-stub" id="billing-modal-content">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-150 flex items-center justify-between bg-slate-50">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider font-sans">Patient Invoice</h3>
+        <button id="close-billing-modal" class="text-slate-450 hover:text-slate-700 text-2xl font-bold p-1 hover:bg-slate-100 rounded-lg w-8 h-8 flex items-center justify-center cursor-pointer transition-all border-none bg-transparent">
+          &times;
+        </button>
+      </div>
+
+      <!-- Invoice Sheet Content -->
+      <div class="p-6 font-sans space-y-4">
+        
+        <!-- Hospital Branding Header -->
+        <div class="text-center pb-2">
+          <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wide">City Care Clinic Ltd.</h4>
+          <p class="text-[9px] text-slate-400 font-bold uppercase font-mono tracking-wider">Registration &amp; Billing Desk</p>
+        </div>
+
+        <!-- Roster Information Info Panel -->
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-semibold font-mono">TICKET TOKEN:</span>
+            <span id="invoice-token" class="font-bold text-[var(--primary)] font-mono text-xs">T---</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-semibold font-mono">PATIENT NAME:</span>
+            <span id="invoice-name" class="font-bold text-slate-800">-- --</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-semibold font-mono">STATUS:</span>
+            <span id="invoice-channel" class="font-bold text-slate-700">--</span>
+          </div>
+          <div class="flex justify-between" id="invoice-duration-row">
+            <span class="text-slate-400 font-semibold font-mono">CONSULT TIME:</span>
+            <span id="invoice-duration" class="font-bold text-slate-700 font-mono">--</span>
+          </div>
+        </div>
+
+        <div class="ticket-perforation"></div>
+
+        <!-- Ledger Entries Table -->
+        <div class="space-y-3">
+          <span class="block text-[9px] uppercase font-mono font-bold text-slate-400 tracking-wider">Ledger Items</span>
+          
+          <div class="space-y-2 text-xs border-b border-slate-100 pb-3 font-mono">
+            <div class="flex justify-between text-slate-600">
+              <span>Physician Consultation Base</span>
+              <span class="font-bold text-slate-800" id="invoice-base-fee">Rs. 250.00</span>
+            </div>
+            
+            <!-- Prepaid reduction row -->
+            <div class="flex justify-between text-[var(--primary)] font-semibold" id="invoice-prepay-row">
+              <span class="flex items-center gap-1 font-sans">
+                <span>Registration Deposit</span>
+              </span>
+              <span class="font-bold">- Rs. 20.00</span>
+            </div>
+          </div>
+
+          <!-- Total Due Row -->
+          <div class="flex justify-between items-baseline pt-1">
+            <span class="text-xs font-bold text-slate-800 uppercase font-sans">Balance Outstanding:</span>
+            <span id="invoice-total" class="text-xl font-mono font-bold text-slate-900 tracking-tight">Rs. 250.00</span>
+          </div>
+        </div>
+
+        <!-- Payment Actions Block -->
+        <div class="pt-4 border-t border-slate-100">
+          <div id="invoice-unpaid-actions" class="space-y-2">
+            <p class="text-[9px] text-slate-400 font-bold text-center uppercase tracking-wider mb-2 font-mono">Select Payment Collection Channel</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="commitBillPayment()" class="py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">Cash</button>
+              <button onclick="commitBillPayment()" class="py-2 bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs rounded-xl transition-all cursor-pointer">Card / UPI</button>
+            </div>
+          </div>
+
+          <div id="invoice-paid-stamp" class="hidden py-3 bg-slate-50 border border-slate-200 rounded-xl text-center flex flex-col items-center justify-center space-y-1">
+            <span class="text-[9px] font-mono tracking-wider uppercase font-extrabold text-[var(--primary)]">INVOICE PAID &amp; CURRENT</span>
+            <span class="text-[8px] text-slate-450 font-mono">Ledger state synced successfully</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Load dependencies and dashboard logic -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="receptionist.js"></script>
+</body>
+</html>
